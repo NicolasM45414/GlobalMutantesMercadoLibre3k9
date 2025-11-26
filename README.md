@@ -13,7 +13,7 @@ Sistema para detectar mutantes mediante análisis de secuencias de ADN. Incluye 
 
 ## 🌐 URL del Deploy en Render
 
-**👉 Deployment:** [`https://TU-URL-RENDER.onrender.com/`](https://TU-URL-RENDER.onrender.com/)
+**👉 Deployment:** [`https://globalmutantesmercadolibre3k9.onrender.com`](https://globalmutantesmercadolibre3k9.onrender.com)
 
 ---
 
@@ -289,7 +289,7 @@ El proyecto puede desplegarse en Render con:
 
 ### 📌 Pegar tu URL aquí:
 
-**👉** [`https://TU-URL-RENDER.onrender.com/`](https://TU-URL-RENDER.onrender.com/)
+**👉** [`https://globalmutantesmercadolibre3k9.onrender.com`](https://globalmutantesmercadolibre3k9.onrender.com)
 
 ---
 
