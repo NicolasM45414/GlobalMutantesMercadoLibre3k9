@@ -312,8 +312,5 @@ Proyecto realizado como desafío técnico basándose en las consignas del enunci
 ---
 
 <div align="center">
-
-**⭐ Si te gustó el proyecto, dale una estrella en GitHub ⭐**
-
 </div>
 
