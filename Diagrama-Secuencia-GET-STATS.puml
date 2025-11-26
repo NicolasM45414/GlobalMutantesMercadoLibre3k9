@@ -1,0 +1,42 @@
+@startuml Diagrama de Secuencia - GET Stats
+
+title Diagrama de Secuencia - GET /stats
+
+actor Cliente as client
+participant MutantController as controller
+participant StatsService as service
+participant DnaRecordRepository as repository
+database H2Database as db
+
+== Obtención de Estadísticas ==
+
+client -> controller: GET /stats
+activate controller
+
+controller -> service: getStats()
+activate service
+
+service -> repository: countByMutantFlag(true)
+activate repository
+repository -> db: SELECT COUNT(*)\nFROM dna_records\nWHERE mutant_flag = true
+db --> repository: count_mutant_dna
+repository --> service: 40L
+deactivate repository
+
+service -> repository: countByMutantFlag(false)
+activate repository
+repository -> db: SELECT COUNT(*)\nFROM dna_records\nWHERE mutant_flag = false
+db --> repository: count_human_dna
+repository --> service: 100L
+deactivate repository
+
+service -> service: computeRatio(40, 100)
+note right: ratio = mutantes / humanos\n= 0.4
+
+service --> controller: StatsResponse\n(40, 100, 0.4)
+deactivate service
+
+controller --> client: 200 OK\n{"count_mutant_dna": 40,\n"count_human_dna": 100,\n"ratio": 0.4}
+deactivate controller
+
+@enduml

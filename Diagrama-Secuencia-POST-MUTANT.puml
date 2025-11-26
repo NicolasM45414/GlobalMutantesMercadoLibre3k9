@@ -1,0 +1,82 @@
+@startuml Diagrama de Secuencia - Mutant Detector API
+
+title Diagrama de Secuencia - POST /mutant
+
+actor Cliente as client
+participant MutantController as controller
+participant MutantService as service
+participant MutantDetector as detector
+participant DnaRecordRepository as repository
+database H2Database as db
+
+== Verificación de ADN Mutante ==
+
+client -> controller: POST /mutant\n{"dna": ["ATGCGA",...]}
+activate controller
+
+controller -> controller: @Valid validación\nDnaRequest
+
+alt DNA inválido
+    controller --> client: 400 Bad Request
+else DNA válido
+    controller -> service: analyzeDna(dna[])
+    activate service
+
+    service -> service: calculateDnaHash(dna)
+    note right: SHA-256 hash\npara deduplicación
+
+    service -> repository: findBySequenceHash(hash)
+    activate repository
+    repository -> db: SELECT * FROM dna_records\nWHERE sequence_hash = ?
+
+    alt DNA ya analizado (caché)
+        db --> repository: DnaRecord encontrado
+        repository --> service: Optional<DnaRecord>
+        service --> controller: boolean (resultado cacheado)
+        note right: ⚡ Optimización:\nNo re-analiza
+    else DNA nuevo
+        repository --> service: Optional.empty()
+
+        service -> detector: isMutant(dna)
+        activate detector
+
+        detector -> detector: isValidDna(dna)
+        detector -> detector: convertToCharGrid(dna)
+
+        loop Para cada posición (row, col)
+            detector -> detector: checkHorizontalPattern()
+            detector -> detector: checkVerticalPattern()
+            detector -> detector: checkDescendingDiagonalPattern()
+            detector -> detector: checkAscendingDiagonalPattern()
+
+            alt Encontradas 2+ secuencias
+                detector --> service: true (Early Termination ⚡)
+                note right: Optimización:\nRetorna apenas\nencuentra 2 secuencias
+            end
+        end
+
+        detector --> service: boolean (resultado)
+        deactivate detector
+
+        service -> service: new DnaRecord(hash, isMutant)
+        service -> repository: save(dnaRecord)
+        repository -> db: INSERT INTO dna_records\n(sequence_hash, mutant_flag, analyzed_at)
+        db --> repository: DnaRecord guardado
+        repository --> service: DnaRecord
+
+        service --> controller: boolean (resultado)
+    end
+
+    deactivate repository
+    deactivate service
+
+    alt Es mutante
+        controller --> client: 200 OK
+    else No es mutante
+        controller --> client: 403 Forbidden
+    end
+end
+
+deactivate controller
+
+@enduml
